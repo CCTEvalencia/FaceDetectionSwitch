@@ -1,0 +1,136 @@
+:root {
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+
+    color-scheme: light dark;
+    color: rgba(255, 255, 255, 0.87);
+    background-color: #242424;
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    color: #ffffff;
+}
+
+html,
+body {
+    background-color: rgba(0, 0, 0, 1);
+    overflow: hidden;
+    height: 100vh;
+}
+
+
+
+progress {
+    width: 100%;
+}
+
+ul {
+    margin-left: 20px;
+}
+
+video#player {
+    transform: rotateY(180deg);
+    -webkit-transform: rotateY(180deg);
+    -moz-transform: rotateY(180deg);
+}
+
+.fullscreen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.window {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    top: 10px;
+    left: 10px;
+    width: 20%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    border: 1px solid #ffffff;
+    background-color: rgba(255, 255, 255, 0.4);
+    z-index: 50;
+}
+
+.window video {
+    width: 100%;
+    height: 100%;
+}
+
+.overlay {
+    position: absolute;
+    padding: 20px;
+    min-width: 200px;
+    background-color: rgba(0, 0, 0, .3);
+}
+
+.slide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    -webkit-transition: all 1s ease-in-out !important;
+    -moz-transition: all 1s ease-in-out !important;
+    -o-transition: all 1s ease-in-out !important;
+    transition: all 1s ease-in-out !important;
+    overflow: hidden;
+}
+
+.hidden {
+    opacity: 0;
+    -webkit-transition: all 1s ease-in-out !important;
+    -moz-transition: all 1s ease-in-out !important;
+    -o-transition: all 1s ease-in-out !important;
+    transition: all 1s ease-in-out !important;
+}
+
+.slide video {
+    height: 100%;
+    width: auto;
+}
+
+#logger {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30%;
+    min-width: 300px;
+    padding: 5px;
+    border: 1px solid #ffffff;
+    background-color: rgba(255, 255, 255, 0.4);
+    font-size: 13px;
+    color: #ffffff;
+    z-index: 500;
+}
+
+#logger #responses {
+    margin-top: 20px;
+    color: #9fffc7
+}
+
+#slide01 {
+    background-color: rgba(0, 0, 0, 1);
+    z-index: 10;
+}
+
+#slide02 {
+    background-color: rgba(255, 0, 0, 1);
+    z-index: 20;
+}
