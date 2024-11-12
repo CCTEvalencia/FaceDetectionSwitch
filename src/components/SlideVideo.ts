@@ -26,7 +26,7 @@ export default class SlideVideo {
             this.video.setAttribute(attribute, "");
         });
         const source = document.createElement("source");
-        source.src = import.meta.env.VITE_BASE_URL + "/vid/" + this.source;
+        source.src = import.meta.env.VITE_BASE_URL + "vid/" + this.source;
         source.type = "video/mp4";
         this.video.appendChild(source);
         this.video.addEventListener("loadedmetadata", () => {

@@ -107,7 +107,7 @@ export default class WebcamFeed {
         // Activate the webcam stream.
     }
     public async predictVideoFeed(timestamp: DOMHighResTimeStamp, faceDetector: FaceDetector) {
-        log("In Action: " + timestamp, true, "actionStatus")
+        log("Frame timestamp: " + timestamp, true, "actionStatus")
         if (this.reactionFinished && this.faceDetector) {
             //await this.faceDetector.setOptions({ runningMode: "VIDEO" });
             let startTimeMs = performance.now();
