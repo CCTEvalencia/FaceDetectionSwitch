@@ -32,7 +32,7 @@ export function log(msg: any = "", showInPlayer = false, target = "") {
 }
 export function mode(name: string) {
     let mode: string = getParameter("mode");
-    if (mode == "") {
+    if (mode == null || mode == "") {
         mode = window.BroadSignObject["mode"] || "";
     }
     const isDegugMode: boolean = (mode == name);
@@ -40,7 +40,7 @@ export function mode(name: string) {
 }
 export function action(name: string) {
     let action: string = getParameter("action");
-    if (action == "") {
+    if (action == null || action == "") {
         action = window.BroadSignObject["action"] || "";
     }
     const takeAction: boolean = (action == name);

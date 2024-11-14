@@ -14,18 +14,22 @@ declare global {
     }
 }
 const app = document.querySelector<HTMLDivElement>('#app');
-
-if (app) {
-    document.addEventListener('DOMContentLoaded', () => {
-        const visibility: string = (mode("debug")) ? "visible" : "hidden";
+//window.BroadSignObject = { mode:"debug", action:"clear-cache" };
+document.addEventListener('DOMContentLoaded', () => {
+    if (app) {
+        window.BroadSignObject = window.BroadSignObject || {};
+        window.PlayerEnv = (Object.keys(window.BroadSignObject).length > 1) ? true : false;
+        window.ModeDebug = mode("debug");
+        window.ActionClearCache = action("clear-cache");
+        const visibility: string = (window.ModeDebug) ? "visible" : "hidden";
         const webcam = new WebcamFeed({ identifier: "viewer", attributes: [visibility] });
         const slide01VideoParameters: SlideVideoParameters = { identifier: "slide01", source: "cta.mp4", attributes: ["muted", "loop", "autoplay"] };
         const slide01OverlayParameters: SlideOverlayParameters = { heading: "Slide 1", description: "Call to Action", withProgress: true, status: visibility };
         const slide01 = new Slide({ identifier: "slide01", videoParameters: slide01VideoParameters, overlayParameters: slide01OverlayParameters, status: "" });
         const slide02VideoParameters: SlideVideoParameters = { identifier: "slide02", source: "reaction.mp4", attributes: ["muted"] };
-        const slide02OverlayParameters: SlideOverlayParameters = { heading: "Slide 2", description: "Face Reaction", withProgress: true, status: visibility };
+        const slide02OverlayParameters: SlideOverlayParameters = { heading: "Slide 2", description: "Face Recognized", withProgress: true, status: visibility };
         const slide02 = new Slide({ identifier: "slide02", videoParameters: slide02VideoParameters, overlayParameters: slide02OverlayParameters, status: "hidden" });
-        const logger = new Logger({ identifier: "logger", attributes: ["visible"] });
+        const logger = new Logger({ identifier: "logger", attributes: [visibility] });
         app.appendChild(webcam.render());
         app.appendChild(slide01.render());
         app.appendChild(slide02.render());
@@ -36,10 +40,6 @@ if (app) {
             return true;
         }
         webcam.initializeDetector();
-        window.BroadSignObject = window.BroadSignObject || {};
-        window.PlayerEnv = (Object.keys(window.BroadSignObject).length > 1) ? true : false;
-        window.ModeDebug = mode("debug")
-        window.ActionClearCache = action("clear-cache")
         const path = window.location.hostname;
         const isRemote = path.includes("ccplay");
         const isPlayer = path.includes("file");
@@ -95,5 +95,5 @@ if (app) {
                 log("SW > Service Workers registration skipped", true);
             }
         }
-    });
-}
+    }
+});
