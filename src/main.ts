@@ -6,7 +6,7 @@ import { SlideVideoParameters, SlideOverlayParameters } from './utils/Interfaces
 import { log, mode, action } from './utils/Functions'
 declare global {
     interface Window {
-        BroadSignPlay: () => void;
+        BroadSignPlay: () => boolean;
         ModeDebug: boolean;
         PlayerEnv: boolean;
         BroadSignObject: any;
