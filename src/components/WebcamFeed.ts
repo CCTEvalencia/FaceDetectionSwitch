@@ -1,7 +1,7 @@
 import { WebcamParameters } from "../utils/Interfaces";
 import { log } from "../utils/Functions";
-
 import {
+    PoseLandmarker,
     FaceDetector,
     FilesetResolver,
 } from "@mediapipe/tasks-vision";
@@ -21,6 +21,7 @@ export default class WebcamFeed {
     public reactionFinished: boolean;
     public reactionTriggered: boolean;
     private faceDetector?: FaceDetector;
+    private poseDetector?: PoseLandmarker;
     public runningMode: RunningMode = "VIDEO";
 
     constructor(parameters: WebcamParameters) {
@@ -57,14 +58,28 @@ export default class WebcamFeed {
     }
     public async initializeDetector() {
         const vision = await FilesetResolver.forVisionTasks("./wasm/");
-        this.faceDetector = await FaceDetector.createFromOptions(vision, {
-            baseOptions: {
-                modelAssetPath: `./models/blaze_face_short_range.tflite`,
-                delegate: "GPU",
-            },
-            runningMode: this.runningMode,
-        });
-        log("Created FaceDetector from model", true);
+        switch (window.Detection) {
+            case "pose":
+                this.poseDetector = await PoseLandmarker.createFromOptions(vision, {
+                    baseOptions: {
+                        modelAssetPath: `./models/pose_landmarker_lite.task`,
+                        delegate: "GPU",
+                    },
+                    runningMode: this.runningMode,
+                    numPoses: 2
+                });
+                break;
+            default:
+                this.faceDetector = await FaceDetector.createFromOptions(vision, {
+                    baseOptions: {
+                        modelAssetPath: `./models/blaze_face_short_range.tflite`,
+                        delegate: "GPU",
+                    },
+                    runningMode: this.runningMode,
+                });
+                break;
+        }
+        log("Created Detector from model", true);
     }
     enableFeed() {
         // Activate the webcam stream.
@@ -78,7 +93,15 @@ export default class WebcamFeed {
             .getUserMedia(constraints)
             .then((stream) => {
                 this.videoFeed.srcObject = stream;
-                this.videoFeed.addEventListener("loadeddata", () => { if (this.faceDetector) { this.predictVideoFeed(timestamp, this.faceDetector) } });
+                switch (window.Detection) {
+                    case "pose":
+                        this.videoFeed.addEventListener("loadeddata", () => { if (this.poseDetector) { this.predictPoseVideoFeed(timestamp, this.poseDetector) } });
+                        break;
+                    default: //face
+                        this.videoFeed.addEventListener("loadeddata", () => { if (this.faceDetector) { this.predictFaceVideoFeed(timestamp, this.faceDetector) } });
+                        break;
+                }
+
             })
             .catch((err) => {
                 console.error(err);
@@ -94,22 +117,38 @@ export default class WebcamFeed {
     }
     public async startDetection(event?: Event) {
         log("Enabling face detection", true);
-        if (!this.faceDetector) {
-            log("FaceDetector is still loading. Re-trying in 10s", true);
-            setTimeout(() => {
-                this.startDetection(event);
-            }, 10000);
-            return;
-        } else {
-            this.enableFeed();
+        switch (window.Detection) {
+            case "pose":
+                if (!this.poseDetector) {
+                    log("Detector is still loading. Re-trying in 10s", true);
+                    setTimeout(() => {
+                        this.startDetection(event);
+                    }, 10000);
+                    return;
+                } else {
+                    this.enableFeed();
+                }
+                break;
+            default:
+                if (!this.faceDetector) {
+                    log("Detector is still loading. Re-trying in 10s", true);
+                    setTimeout(() => {
+                        this.startDetection(event);
+                    }, 10000);
+                    return;
+                } else {
+                    this.enableFeed();
+                }
+                break;
         }
+
 
         // Activate the webcam stream.
     }
-    public async predictVideoFeed(timestamp: DOMHighResTimeStamp, faceDetector: FaceDetector) {
+    public async predictFaceVideoFeed(timestamp: DOMHighResTimeStamp, faceDetector: FaceDetector) {
         log("Frame timestamp: " + timestamp, true, "actionStatus")
         if (this.reactionFinished && this.faceDetector) {
-            //await this.faceDetector.setOptions({ runningMode: "VIDEO" });
+            //await this.featureDetector.setOptions({ runningMode: "VIDEO" });
             let startTimeMs = performance.now();
             // Detect faces using detectForVideo
             if (this.videoFeed.currentTime !== this.lastVideoTime) {
@@ -118,7 +157,7 @@ export default class WebcamFeed {
                     this.videoFeed,
                     startTimeMs
                 ).detections;
-                log("Detected faces: " + detections.length, true, "detections");
+                log("Detections: " + detections.length, true, "detections");
                 if (detections.length > 0) {
                     const score = parseFloat(detections[0].categories[0].score + "");
                     const confidence = Math.round(score) * 100;
@@ -142,11 +181,61 @@ export default class WebcamFeed {
                         this.ctaTimer = 50;
                     }
                 }
+
                 log("CTA Timer: " + this.ctaTimer, true, "ctaTimer");
             }
             log("Reaction Status: " + this.reactionFinished, true, "reactionStatus")
         }
-        window.requestAnimationFrame((timestamp) => this.predictVideoFeed(timestamp, faceDetector));
+        window.requestAnimationFrame((timestamp) => this.predictFaceVideoFeed(timestamp, faceDetector));
+    }
+    public async predictPoseVideoFeed(timestamp: DOMHighResTimeStamp, poseDetector: PoseLandmarker) {
+        log("Frame timestamp: " + timestamp, true, "actionStatus")
+        if (this.reactionFinished && this.poseDetector) {
+            //await this.featureDetector.setOptions({ runningMode: "VIDEO" });
+            let startTimeMs = performance.now();
+            // Detect faces using detectForVideo
+            if (this.videoFeed.currentTime !== this.lastVideoTime) {
+                this.lastVideoTime = this.videoFeed.currentTime;
+                const detections = poseDetector.detectForVideo(
+                    this.videoFeed,
+                    startTimeMs,
+                    (result) => {
+                        console.log(result.landmarks.length);
+                        if (result.landmarks.length > 0) {
+                            const score = 1; //parseFloat(detections[0].categories[0].score + "");
+                            const confidence = Math.round(score) * 100;
+                            log("Confidence: " + confidence + "%", true, "confidence")
+                            if (this.ctaTimer == 0) {
+                                if (!this.reactionTriggered) {
+                                    this.reactionVideo.currentTime = 0;
+                                    this.reactionVideo.play();
+                                    this.reactionSlide.classList.remove("hidden");
+                                    this.reactionFinished = false;
+                                    this.reactionTriggered = true;
+                                }
+                            } else {
+                                if (this.reactionFinished) {
+                                    this.reactionSlide.classList.add("hidden");
+                                }
+                                this.ctaTimer -= 1;
+                            }
+                        } else {
+                            if (this.reactionFinished) {
+                                this.ctaTimer = 50;
+                            }
+                        }
+                    }
+                );
+                log("Detections: " + detections, true, "detections");
+                /*
+                
+                    */
+
+                log("CTA Timer: " + this.ctaTimer, true, "ctaTimer");
+            }
+            log("Reaction Status: " + this.reactionFinished, true, "reactionStatus")
+        }
+        window.requestAnimationFrame((timestamp) => this.predictPoseVideoFeed(timestamp, poseDetector));
     }
     show() {
         console.log("showing webcam")

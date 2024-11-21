@@ -3,10 +3,11 @@ import Slide from './components/Slide';
 import WebcamFeed from './components/WebcamFeed';
 import Logger from './components/Logger';
 import { SlideVideoParameters, SlideOverlayParameters } from './utils/Interfaces';
-import { log, mode, action } from './utils/Functions'
+import { log, mode, action, detect } from './utils/Functions'
 declare global {
     interface Window {
         BroadSignPlay: () => boolean;
+        Detection: string;
         ModeDebug: boolean;
         PlayerEnv: boolean;
         BroadSignObject: any;
@@ -19,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (app) {
         window.BroadSignObject = window.BroadSignObject || {};
         window.PlayerEnv = (Object.keys(window.BroadSignObject).length > 1) ? true : false;
+        window.Detection = detect();
         window.ModeDebug = mode("debug");
         window.ActionClearCache = action("clear-cache");
         const visibility: string = (window.ModeDebug) ? "visible" : "hidden";

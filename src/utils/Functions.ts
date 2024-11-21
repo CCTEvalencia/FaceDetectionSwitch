@@ -30,6 +30,13 @@ export function log(msg: any = "", showInPlayer = false, target = "") {
     }
     //}
 }
+export function detect() {
+    let mode: string = getParameter("detect");
+    if (mode == null || mode == "") {
+        mode = window.BroadSignObject["detect"] || "face";
+    }
+    return (mode);
+}
 export function mode(name: string) {
     let mode: string = getParameter("mode");
     if (mode == null || mode == "") {
